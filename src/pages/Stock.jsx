@@ -184,13 +184,19 @@ export default function Stock() {
                   range as a rough guide.
                 </p>
               )}
-              <p className="sub">
+                            <p className="sub">
                 This is the likely size of the move, not its direction. Direction was not
                 predictable in our tests.
+              </p>
+              <p className="sub">
+                <Link to="/evidence" style={{ textDecoration: "underline" }}>
+                  Why this forecast? See the tests
+                </Link>
               </p>
             </>
           ) : (
             <p className="sub">{fc.reason}</p>
+            
           )}
         </div>
       )}

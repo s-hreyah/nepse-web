@@ -60,3 +60,5 @@ a:hover { color: var(--accent); }
 .tile { border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
 .tile-name { font-size: 13px; color: var(--muted); }
 .tile-pct { font-size: 20px; font-weight: 600; margin: 4px 0; }
+.ev th, .ev td { text-align: left; white-space: normal; vertical-align: top; }
+.ev td:first-child { font-weight: 600; min-width: 140px; }

@@ -4,6 +4,7 @@ import Stock from "./pages/Stock";
 import Sectors from "./pages/Sectors";
 import Watchlist from "./pages/Watchlist";
 import Learn from "./pages/Learn";
+import Evidence from "./pages/Evidence";
 
 export default function App() {
   return (
@@ -12,7 +13,8 @@ export default function App() {
       <Route path="/stock/:symbol" element={<Stock />} />
       <Route path="/sectors" element={<Sectors />} />
       <Route path="/watchlist" element={<Watchlist />} />
-            <Route path="/learn" element={<Learn />} />
+      <Route path="/learn" element={<Learn />} />
+      <Route path="/evidence" element={<Evidence />} />
     </Routes>
   );
 }
