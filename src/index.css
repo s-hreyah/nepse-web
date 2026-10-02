@@ -1,0 +1,50 @@
+:root {
+  --bg: #f6f7f9;
+  --card: #ffffff;
+  --text: #1a1d23;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --up: #15803d;
+  --down: #b91c1c;
+  --accent: #4f46e5;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1115;
+    --card: #181b22;
+    --text: #e8eaed;
+    --muted: #9aa0aa;
+    --line: #2a2e38;
+    --up: #4ade80;
+    --down: #f87171;
+    --accent: #818cf8;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.page { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+h1 { margin: 0 0 4px; font-size: 26px; }
+.sub { color: var(--muted); margin: 0 0 20px; font-size: 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.card h2 { margin: 0 0 10px; font-size: 16px; }
+.row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.row:last-child { border-bottom: none; }
+.sym { font-weight: 600; }
+.name { color: var(--muted); font-size: 12px; max-width: 170px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.up { color: var(--up); }
+.down { color: var(--down); }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.search { width: 100%; padding: 10px 12px; margin: 20px 0 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); font-size: 14px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; }
+.error { background: #fee2e2; color: #7f1d1d; padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; }
+.note { color: var(--muted); font-size: 12px; margin-top: 24px; }
