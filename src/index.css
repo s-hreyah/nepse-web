@@ -56,3 +56,7 @@ a:hover { color: var(--accent); }
 .btns { display: flex; gap: 8px; margin-bottom: 12px; }
 .btn { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
 .btn.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+.heatmap { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-top: 12px; }
+.tile { border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+.tile-name { font-size: 13px; color: var(--muted); }
+.tile-pct { font-size: 20px; font-weight: 600; margin: 4px 0; }

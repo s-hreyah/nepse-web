@@ -61,11 +61,13 @@ export default function Market() {
   return (
     <div className="page">
       <h1>NEPSE Monitor</h1>
+      
       <p className="sub">
         {summary
           ? `Trading day ${summary.date} · ${summary.stocks_traded} company shares traded`
           : "Loading..."}
       </p>
+      <Link to="/sectors" className="back">Indices and sectors →</Link>
 
       {error && <div className="error">{error}</div>}
 
