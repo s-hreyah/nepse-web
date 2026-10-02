@@ -48,3 +48,11 @@ th:first-child, td:first-child { text-align: left; }
 th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; }
 .error { background: #fee2e2; color: #7f1d1d; padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; }
 .note { color: var(--muted); font-size: 12px; margin-top: 24px; }
+a { color: inherit; text-decoration: none; }
+a:hover { color: var(--accent); }
+.back { color: var(--muted); font-size: 14px; display: inline-block; margin-bottom: 12px; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 16px 0; }
+.stat-grid h2 { margin: 4px 0 0; font-size: 20px; }
+.btns { display: flex; gap: 8px; margin-bottom: 12px; }
+.btn { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
+.btn.on { background: var(--accent); color: #fff; border-color: var(--accent); }
