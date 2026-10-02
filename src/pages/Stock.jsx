@@ -45,6 +45,19 @@ export default function Stock() {
       .catch(() => setError("Could not load this stock."));
   }, [symbol]);
 
+    const [watched, setWatched] = useState(false);
+
+  useEffect(() => {
+    fetch(`${API}/watchlist`)
+      .then((r) => r.json())
+      .then((d) => setWatched(d.items.some((i) => i.symbol === symbol.toUpperCase())))
+      .catch(() => {});
+  }, [symbol]);
+
+  const toggleWatch = () => {
+    fetch(`${API}/watchlist/${symbol}`, { method: watched ? "DELETE" : "POST" })
+      .then((r) => { if (r.ok) setWatched(!watched); });
+  };
   if (error) {
     return (
       <div className="page">
@@ -75,6 +88,9 @@ export default function Stock() {
         ← Market
       </Link>
       <h1>{data.symbol}</h1>
+      <button className={watched ? "btn on" : "btn"} onClick={toggleWatch}>
+        {watched ? "★ Watching" : "☆ Watch"}
+      </button>
       <p className="sub">
         {data.company?.name} · {data.company?.sector} · last trade {last.trade_date}
       </p>
