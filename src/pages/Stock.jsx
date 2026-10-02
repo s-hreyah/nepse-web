@@ -30,11 +30,47 @@ const tip = {
   color: "var(--text)",
 };
 
+const Candle = ({ x, y, width, height, payload }) => {
+  const { adj_open: o, adj_close: c, adj_high: h, adj_low: l } = payload;
+  if ([o, c, h, l].some((v) => v == null)) return null;
+  const color = c >= o ? "#10b981" : "#ef4444";
+  const range = h - l;
+  const px = (v) => (range === 0 ? y : y + ((h - v) / range) * height);
+  const top = px(Math.max(o, c));
+  const bottom = px(Math.min(o, c));
+  const cx = x + width / 2;
+  return (
+    <g>
+      <line x1={cx} x2={cx} y1={y} y2={y + height} stroke={color} />
+      <rect x={x + width * 0.15} y={top} width={width * 0.7}
+            height={Math.max(bottom - top, 1)} fill={color} />
+      {payload.mark && <circle cx={cx} cy={y - 7} r={4} fill="var(--accent)" />}
+    </g>
+  );
+};
+
+const CandleTip = ({ active, payload }) => {
+  if (!active || !payload?.length) return null;
+  const p = payload[0].payload;
+  return (
+    <div style={{ ...tip, padding: 8, fontSize: 13 }}>
+      <div>{p.trade_date}</div>
+      <div>Open {fmt(p.adj_open)} · High {fmt(p.adj_high)}</div>
+      <div>Low {fmt(p.adj_low)} · Close {fmt(p.adj_close)}</div>
+      {p.mark && <div>Pattern: {p.mark.join(", ").replaceAll("_", " ")}</div>}
+    </div>
+  );
+};
+
 export default function Stock() {
   const { symbol } = useParams();
   const [data, setData] = useState(null);
   const [range, setRange] = useState("6M");
+  const [view, setView] = useState("line");
   const [error, setError] = useState("");
+  const [watched, setWatched] = useState(false);
+  const [found, setFound] = useState([]);
+  const [fc, setFc] = useState(null);
 
   useEffect(() => {
     setData(null);
@@ -45,8 +81,6 @@ export default function Stock() {
       .catch(() => setError("Could not load this stock."));
   }, [symbol]);
 
-    const [watched, setWatched] = useState(false);
-
   useEffect(() => {
     fetch(`${API}/watchlist`)
       .then((r) => r.json())
@@ -54,10 +88,25 @@ export default function Stock() {
       .catch(() => {});
   }, [symbol]);
 
+  useEffect(() => {
+    fetch(`${API}/stocks/${symbol}/patterns`)
+      .then((r) => r.json())
+      .then((d) => setFound(d.found || []))
+      .catch(() => {});
+  }, [symbol]);
+
+  useEffect(() => {
+    setFc(null);
+    fetch(`${API}/stocks/${symbol}/forecast`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then(setFc)
+      .catch(() => setFc(null));
+  }, [symbol]);
   const toggleWatch = () => {
     fetch(`${API}/watchlist/${symbol}`, { method: watched ? "DELETE" : "POST" })
       .then((r) => { if (r.ok) setWatched(!watched); });
   };
+
   if (error) {
     return (
       <div className="page">
@@ -77,7 +126,8 @@ export default function Stock() {
     );
   }
 
-  const pts = data.points.slice(-RANGES[range]);
+  const marks = Object.fromEntries(found.map((f) => [f.trade_date, f.patterns]));
+  const pts = data.points.slice(-RANGES[range]).map((p) => ({ ...p, mark: marks[p.trade_date] }));
   const last = data.points[data.points.length - 1];
   const prices = pts.map((p) => p.adj_close).filter((v) => v != null);
   const change = last.return_pct;
@@ -115,6 +165,35 @@ export default function Stock() {
           <h2>{fmt(Math.min(...prices))}</h2>
         </div>
       </div>
+            {fc && (
+        <div className="card" style={{ marginBottom: 16 }}>
+          <h2>Expected move tomorrow</h2>
+          {fc.available ? (
+            <>
+              <p style={{ fontSize: 22, margin: "4px 0" }}>
+                ±{fmt(fc.band_pct)}% · Rs {fmt(fc.low)} to Rs {fmt(fc.high)}
+              </p>
+              <p className="sub">
+                Based on the {fc.avg_abs_move_20d_pct}% average daily move over the last 20
+                trades. In testing, about {fc.tested_coverage_pct}% of real moves fell inside
+                a band built this way.
+              </p>
+              {fc.thin && (
+                <p className="sub">
+                  This stock trades rarely, so the last 20 trades cover many weeks. Treat the
+                  range as a rough guide.
+                </p>
+              )}
+              <p className="sub">
+                This is the likely size of the move, not its direction. Direction was not
+                predictable in our tests.
+              </p>
+            </>
+          ) : (
+            <p className="sub">{fc.reason}</p>
+          )}
+        </div>
+      )}
 
       <div className="btns">
         {Object.keys(RANGES).map((r) => (
@@ -128,35 +207,54 @@ export default function Stock() {
         ))}
       </div>
 
+      <div className="btns">
+        <button className={view === "line" ? "btn on" : "btn"} onClick={() => setView("line")}>Line</button>
+        <button className={view === "candle" ? "btn on" : "btn"} onClick={() => setView("candle")}>Candles</button>
+      </div>
+
       <div className="card">
-        <h2>Adjusted price and moving averages</h2>
+        <h2>{view === "line" ? "Adjusted price and moving averages" : "Candlesticks (adjusted)"}</h2>
         <div style={{ height: 320 }}>
           <ResponsiveContainer>
-            <LineChart data={pts}>
-              <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" />
-              <XAxis
-                dataKey="trade_date"
-                tickFormatter={(d) => d.slice(5)}
-                minTickGap={30}
-                stroke="var(--muted)"
-              />
-              <YAxis domain={["auto", "auto"]} stroke="var(--muted)" width={55} />
-              <Tooltip contentStyle={tip} />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="adj_close"
-                name="Price"
-                stroke="var(--accent)"
-                dot={false}
-                strokeWidth={2}
-              />
-              <Line type="monotone" dataKey="ma20" name="20-day avg" stroke="#f59e0b" dot={false} />
-              <Line type="monotone" dataKey="ma50" name="50-day avg" stroke="#10b981" dot={false} />
-            </LineChart>
+            {view === "line" ? (
+              <LineChart data={pts}>
+                <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" />
+                <XAxis dataKey="trade_date" tickFormatter={(d) => d.slice(5)} minTickGap={30} stroke="var(--muted)" />
+                <YAxis domain={["auto", "auto"]} stroke="var(--muted)" width={55} />
+                <Tooltip contentStyle={tip} />
+                <Legend />
+                <Line type="monotone" dataKey="adj_close" name="Price" stroke="var(--accent)" dot={false} strokeWidth={2} />
+                <Line type="monotone" dataKey="ma20" name="20-day avg" stroke="#f59e0b" dot={false} />
+                <Line type="monotone" dataKey="ma50" name="50-day avg" stroke="#10b981" dot={false} />
+              </LineChart>
+            ) : (
+              <BarChart data={pts}>
+                <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" />
+                <XAxis dataKey="trade_date" tickFormatter={(d) => d.slice(5)} minTickGap={30} stroke="var(--muted)" />
+                <YAxis domain={["auto", "auto"]} stroke="var(--muted)" width={55} />
+                <Tooltip content={<CandleTip />} />
+                <Bar dataKey={(p) => [p.adj_low, p.adj_high]} shape={<Candle />} isAnimationActive={false} />
+              </BarChart>
+            )}
           </ResponsiveContainer>
         </div>
       </div>
+
+      {found.length > 0 && (
+        <div className="card" style={{ marginTop: 16 }}>
+          <h2>Patterns spotted</h2>
+          {found.slice(-8).reverse().map((f) => (
+            <div key={f.trade_date}>
+              {f.trade_date}:{" "}
+              {f.patterns.map((k) => (
+                <Link key={k} to={`/learn#${k}`} style={{ marginRight: 8, textDecoration: "underline" }}>
+                  {k.replaceAll("_", " ")}
+                </Link>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="card" style={{ marginTop: 16 }}>
         <h2>Volume</h2>
