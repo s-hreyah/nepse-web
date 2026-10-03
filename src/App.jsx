@@ -5,6 +5,7 @@ import Sectors from "./pages/Sectors";
 import Watchlist from "./pages/Watchlist";
 import Learn from "./pages/Learn";
 import Evidence from "./pages/Evidence";
+import Events from "./pages/Events";
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
       <Route path="/watchlist" element={<Watchlist />} />
       <Route path="/learn" element={<Learn />} />
       <Route path="/evidence" element={<Evidence />} />
+      <Route path="/events" element={<Events />} />
     </Routes>
   );
 }

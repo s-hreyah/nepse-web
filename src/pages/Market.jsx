@@ -70,6 +70,7 @@ export default function Market() {
       <Link to="/sectors" className="back">Indices and sectors →</Link>
       <Link to="/watchlist" className="back" style={{ marginLeft: 16 }}>Watchlist →</Link>
       <Link to="/learn" className="back" style={{ marginLeft: 16 }}>Learn candlesticks →</Link>
+            <Link to="/events" className="back" style={{ marginLeft: 16 }}>Upcoming dividends →</Link>
 
       {error && <div className="error">{error}</div>}
 

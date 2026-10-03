@@ -102,6 +102,17 @@ export default function Stock() {
       .then(setFc)
       .catch(() => setFc(null));
   }, [symbol]);
+
+    const [range2, setRange2] = useState(null);
+
+  useEffect(() => {
+    fetch(`${API}/stocks/${symbol}/range`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then(setRange2)
+      .catch(() => {});
+  }, [symbol]);
+
+
   const toggleWatch = () => {
     fetch(`${API}/watchlist/${symbol}`, { method: watched ? "DELETE" : "POST" })
       .then((r) => { if (r.ok) setWatched(!watched); });
@@ -246,7 +257,7 @@ export default function Stock() {
         </div>
       </div>
 
-      {found.length > 0 && (
+            {found.length > 0 && (
         <div className="card" style={{ marginTop: 16 }}>
           <h2>Patterns spotted</h2>
           {found.slice(-8).reverse().map((f) => (
@@ -261,6 +272,57 @@ export default function Stock() {
           ))}
         </div>
       )}
+                {range2.event && (
+            <p className="note" style={{ marginTop: 8 }}>
+              Book close on {range2.event.book_close}: expect the price to drop by about{" "}
+              {fmt(Math.abs(range2.event.expected_drop_pct), 1)}% that day from the bonus and
+              cash dividend. That is a mechanical adjustment, not a market move, so the range
+              above may look too high.
+            </p>
+          )}
+
+      {range2?.available && (
+        <div className="card table-wrap" style={{ marginTop: 16 }}>
+          <h2>Likely range ahead</h2>
+          <p className="sub">
+            About 4 times in 5, the close landed inside these ranges in our tests. Average daily
+            move lately: {fmt(range2.avg_daily_move_pct)}%.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>In</th>
+                <th>Low</th>
+                <th>High</th>
+                <th>±</th>
+              </tr>
+            </thead>
+            <tbody>
+              {range2.ranges.map((r) => (
+                <tr key={r.days}>
+                  <td>{r.days} trading days</td>
+                  <td>{fmt(r.low)}</td>
+                  <td>{fmt(r.high)}</td>
+                  <td>{fmt(r.plus_minus_pct, 1)}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {range2.event && (
+            <p className="note" style={{ marginTop: 8 }}>
+              Book close on {range2.event.book_close}: expect the price to drop by about{" "}
+              {fmt(Math.abs(range2.event.expected_drop_pct), 1)}% that day from the bonus and
+              cash dividend. That is a mechanical adjustment, not a market move, so the range
+              above may look too high.
+            </p>
+          )}
+          <p className="note">
+            This is a range, not a forecast of direction: we found no evidence that direction can
+            be predicted. Education only, not financial advice.
+          </p>
+        </div>
+      )}
+     
 
       <div className="card" style={{ marginTop: 16 }}>
         <h2>Volume</h2>
