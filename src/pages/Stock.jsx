@@ -42,8 +42,13 @@ const Candle = ({ x, y, width, height, payload }) => {
   return (
     <g>
       <line x1={cx} x2={cx} y1={y} y2={y + height} stroke={color} />
-      <rect x={x + width * 0.15} y={top} width={width * 0.7}
-            height={Math.max(bottom - top, 1)} fill={color} />
+      <rect
+        x={x + width * 0.15}
+        y={top}
+        width={width * 0.7}
+        height={Math.max(bottom - top, 1)}
+        fill={color}
+      />
       {payload.mark && <circle cx={cx} cy={y - 7} r={4} fill="var(--accent)" />}
     </g>
   );
@@ -55,8 +60,12 @@ const CandleTip = ({ active, payload }) => {
   return (
     <div style={{ ...tip, padding: 8, fontSize: 13 }}>
       <div>{p.trade_date}</div>
-      <div>Open {fmt(p.adj_open)} · High {fmt(p.adj_high)}</div>
-      <div>Low {fmt(p.adj_low)} · Close {fmt(p.adj_close)}</div>
+      <div>
+        Open {fmt(p.adj_open)} · High {fmt(p.adj_high)}
+      </div>
+      <div>
+        Low {fmt(p.adj_low)} · Close {fmt(p.adj_close)}
+      </div>
       {p.mark && <div>Pattern: {p.mark.join(", ").replaceAll("_", " ")}</div>}
     </div>
   );
@@ -71,6 +80,7 @@ export default function Stock() {
   const [watched, setWatched] = useState(false);
   const [found, setFound] = useState([]);
   const [fc, setFc] = useState(null);
+  const [rng, setRng] = useState(null);
 
   useEffect(() => {
     setData(null);
@@ -103,19 +113,18 @@ export default function Stock() {
       .catch(() => setFc(null));
   }, [symbol]);
 
-    const [range2, setRange2] = useState(null);
-
   useEffect(() => {
+    setRng(null);
     fetch(`${API}/stocks/${symbol}/range`)
       .then((r) => (r.ok ? r.json() : null))
-      .then(setRange2)
-      .catch(() => {});
+      .then(setRng)
+      .catch(() => setRng(null));
   }, [symbol]);
 
-
   const toggleWatch = () => {
-    fetch(`${API}/watchlist/${symbol}`, { method: watched ? "DELETE" : "POST" })
-      .then((r) => { if (r.ok) setWatched(!watched); });
+    fetch(`${API}/watchlist/${symbol}`, { method: watched ? "DELETE" : "POST" }).then((r) => {
+      if (r.ok) setWatched(!watched);
+    });
   };
 
   if (error) {
@@ -176,7 +185,8 @@ export default function Stock() {
           <h2>{fmt(Math.min(...prices))}</h2>
         </div>
       </div>
-            {fc && (
+
+      {fc && (
         <div className="card" style={{ marginBottom: 16 }}>
           <h2>Expected move tomorrow</h2>
           {fc.available ? (
@@ -186,8 +196,8 @@ export default function Stock() {
               </p>
               <p className="sub">
                 Based on the {fc.avg_abs_move_20d_pct}% average daily move over the last 20
-                trades. In testing, about {fc.tested_coverage_pct}% of real moves fell inside
-                a band built this way.
+                trades. In testing, about {fc.tested_coverage_pct}% of real moves fell inside a
+                band built this way.
               </p>
               {fc.thin && (
                 <p className="sub">
@@ -195,7 +205,7 @@ export default function Stock() {
                   range as a rough guide.
                 </p>
               )}
-                            <p className="sub">
+              <p className="sub">
                 This is the likely size of the move, not its direction. Direction was not
                 predictable in our tests.
               </p>
@@ -207,26 +217,25 @@ export default function Stock() {
             </>
           ) : (
             <p className="sub">{fc.reason}</p>
-            
           )}
         </div>
       )}
 
       <div className="btns">
         {Object.keys(RANGES).map((r) => (
-          <button
-            key={r}
-            className={r === range ? "btn on" : "btn"}
-            onClick={() => setRange(r)}
-          >
+          <button key={r} className={r === range ? "btn on" : "btn"} onClick={() => setRange(r)}>
             {r}
           </button>
         ))}
       </div>
 
       <div className="btns">
-        <button className={view === "line" ? "btn on" : "btn"} onClick={() => setView("line")}>Line</button>
-        <button className={view === "candle" ? "btn on" : "btn"} onClick={() => setView("candle")}>Candles</button>
+        <button className={view === "line" ? "btn on" : "btn"} onClick={() => setView("line")}>
+          Line
+        </button>
+        <button className={view === "candle" ? "btn on" : "btn"} onClick={() => setView("candle")}>
+          Candles
+        </button>
       </div>
 
       <div className="card">
@@ -236,57 +245,77 @@ export default function Stock() {
             {view === "line" ? (
               <LineChart data={pts}>
                 <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" />
-                <XAxis dataKey="trade_date" tickFormatter={(d) => d.slice(5)} minTickGap={30} stroke="var(--muted)" />
+                <XAxis
+                  dataKey="trade_date"
+                  tickFormatter={(d) => d.slice(5)}
+                  minTickGap={30}
+                  stroke="var(--muted)"
+                />
                 <YAxis domain={["auto", "auto"]} stroke="var(--muted)" width={55} />
                 <Tooltip contentStyle={tip} />
                 <Legend />
-                <Line type="monotone" dataKey="adj_close" name="Price" stroke="var(--accent)" dot={false} strokeWidth={2} />
+                <Line
+                  type="monotone"
+                  dataKey="adj_close"
+                  name="Price"
+                  stroke="var(--accent)"
+                  dot={false}
+                  strokeWidth={2}
+                />
                 <Line type="monotone" dataKey="ma20" name="20-day avg" stroke="#f59e0b" dot={false} />
                 <Line type="monotone" dataKey="ma50" name="50-day avg" stroke="#10b981" dot={false} />
               </LineChart>
             ) : (
               <BarChart data={pts}>
                 <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" />
-                <XAxis dataKey="trade_date" tickFormatter={(d) => d.slice(5)} minTickGap={30} stroke="var(--muted)" />
+                <XAxis
+                  dataKey="trade_date"
+                  tickFormatter={(d) => d.slice(5)}
+                  minTickGap={30}
+                  stroke="var(--muted)"
+                />
                 <YAxis domain={["auto", "auto"]} stroke="var(--muted)" width={55} />
                 <Tooltip content={<CandleTip />} />
-                <Bar dataKey={(p) => [p.adj_low, p.adj_high]} shape={<Candle />} isAnimationActive={false} />
+                <Bar
+                  dataKey={(p) => [p.adj_low, p.adj_high]}
+                  shape={<Candle />}
+                  isAnimationActive={false}
+                />
               </BarChart>
             )}
           </ResponsiveContainer>
         </div>
       </div>
 
-            {found.length > 0 && (
+      {found.length > 0 && (
         <div className="card" style={{ marginTop: 16 }}>
           <h2>Patterns spotted</h2>
-          {found.slice(-8).reverse().map((f) => (
-            <div key={f.trade_date}>
-              {f.trade_date}:{" "}
-              {f.patterns.map((k) => (
-                <Link key={k} to={`/learn#${k}`} style={{ marginRight: 8, textDecoration: "underline" }}>
-                  {k.replaceAll("_", " ")}
-                </Link>
-              ))}
-            </div>
-          ))}
+          {found
+            .slice(-8)
+            .reverse()
+            .map((f) => (
+              <div key={f.trade_date}>
+                {f.trade_date}:{" "}
+                {f.patterns.map((k) => (
+                  <Link
+                    key={k}
+                    to={`/learn#${k}`}
+                    style={{ marginRight: 8, textDecoration: "underline" }}
+                  >
+                    {k.replaceAll("_", " ")}
+                  </Link>
+                ))}
+              </div>
+            ))}
         </div>
       )}
-                {range2.event && (
-            <p className="note" style={{ marginTop: 8 }}>
-              Book close on {range2.event.book_close}: expect the price to drop by about{" "}
-              {fmt(Math.abs(range2.event.expected_drop_pct), 1)}% that day from the bonus and
-              cash dividend. That is a mechanical adjustment, not a market move, so the range
-              above may look too high.
-            </p>
-          )}
 
-      {range2?.available && (
+      {rng?.available && (
         <div className="card table-wrap" style={{ marginTop: 16 }}>
           <h2>Likely range ahead</h2>
           <p className="sub">
             About 4 times in 5, the close landed inside these ranges in our tests. Average daily
-            move lately: {fmt(range2.avg_daily_move_pct)}%.
+            move lately: {fmt(rng.avg_daily_move_pct)}%.
           </p>
           <table>
             <thead>
@@ -298,7 +327,7 @@ export default function Stock() {
               </tr>
             </thead>
             <tbody>
-              {range2.ranges.map((r) => (
+              {rng.ranges.map((r) => (
                 <tr key={r.days}>
                   <td>{r.days} trading days</td>
                   <td>{fmt(r.low)}</td>
@@ -308,12 +337,12 @@ export default function Stock() {
               ))}
             </tbody>
           </table>
-          {range2.event && (
+          {rng.event && (
             <p className="note" style={{ marginTop: 8 }}>
-              Book close on {range2.event.book_close}: expect the price to drop by about{" "}
-              {fmt(Math.abs(range2.event.expected_drop_pct), 1)}% that day from the bonus and
-              cash dividend. That is a mechanical adjustment, not a market move, so the range
-              above may look too high.
+              Book close on {rng.event.book_close}: expect the price to drop by about{" "}
+              {fmt(Math.abs(rng.event.expected_drop_pct), 1)}% that day from the bonus and cash
+              dividend. That is a mechanical adjustment, not a market move, so the range above
+              may look too high.
             </p>
           )}
           <p className="note">
@@ -322,7 +351,6 @@ export default function Stock() {
           </p>
         </div>
       )}
-     
 
       <div className="card" style={{ marginTop: 16 }}>
         <h2>Volume</h2>
